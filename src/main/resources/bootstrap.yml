@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: YL-B-Channel-Coffee-Provider
+  cloud:
+    config:
+      uri: ${configUri}
+      profile: ${configProfile}
+      username: banma
+      password: banma2019
+      label: ${configLabel}
+      name: YL-B-Channel-Resume-Provider
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${eureka.url}
+#      defaultZone: http://10.0.21.126:18952/eureka/
+    register-with-eureka: false
+  instance:
+#    hostname: localhost
+    prefer-ip-address: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - refresh
+        - health
+        - info

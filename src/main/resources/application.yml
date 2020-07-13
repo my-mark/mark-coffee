@@ -1,0 +1,47 @@
+server:
+  port: 8888
+  tomcat:
+    basedir: /data/app/upload
+spring:
+  zipkin:
+    base-url: ${zipkin.url}
+  profiles:
+    active: db,redis
+#请求处理的超时时间
+ribbon:
+  ReadTimeout: 120000
+#请求连接的超时时间
+  ConnectTimeout: 30000
+
+feign:
+  hystrix:
+    enabled: false
+    shareSecurityContext: true
+    command:
+      default:
+        circuitBreaker:
+          sleepWindowInMilliseconds: 100000
+          forceClosed: true
+        execution:
+          timeout:
+            enabled: false #禁用超时
+          isolation:
+            thread:
+              timeoutInMilliseconds: 600000
+
+#=======Mybatis 配置=========================================================================================================================================
+mybatis:
+  mapper-locations: classpath:mybatis/*.xml  #注意：一定要对应mapper映射xml文件的所在路径
+  type-aliases-package: com.ylkz.entity  # 注意：对应实体类的路径
+  configuration:
+    map-underscore-to-camel-case: true   #驼峰命名转换
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl   #控制台打印sql语句
+
+#pagehelper 分页插件配置
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+stash.url: ${logstash.server}
+stash.level: ${logstash.level}
