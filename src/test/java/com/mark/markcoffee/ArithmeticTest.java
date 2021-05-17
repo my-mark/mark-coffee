@@ -2,9 +2,11 @@ package com.mark.markcoffee;
 
 
 import com.alibaba.druid.sql.visitor.functions.Char;
+import com.alibaba.fastjson.JSON;
 import com.mark.markcoffee.entity.Person;
 import com.mark.markcoffee.util.DateTimeUtil;
 
+import javax.swing.tree.TreeNode;
 import java.rmi.dgc.Lease;
 import java.util.*;
 
@@ -65,8 +67,50 @@ public class ArithmeticTest {
         /**基数排序*/
         /*System.out.println("基数排序:");
         Arrays.stream(radixSort(numbers,2)).forEach(num -> System.out.print(num + "\t"));*/
+        /**=============================== 二 叉 树 算 法 ===============================*/
+        Solution solution = new Solution();
+        //示例二叉树
+        /*TreeNode treeNode = new TreeNode(8);
+        treeNode.left = new TreeNode(5);
+        treeNode.right = new TreeNode(11);
+        treeNode.left.left = new TreeNode(4);
+        treeNode.left.right = new TreeNode(6);
+        treeNode.right.left = new TreeNode(9);
+        treeNode.right.right = new TreeNode(15);
+        //判断是否为二叉搜索树(leetcode-98)
+        System.out.println(solution.isValidBST(treeNode));*/
+
+        /**
+         * 应用场景:一个字段标识多类型
+         */
+        int num = 6;
+        Integer pow1 = (int)Math.pow(2, 1);
+        Integer pow2 = (int)Math.pow(2,2);
+        Integer pow3 = (int)Math.pow(2,3);
+        Integer pow4 = (int)Math.pow(2,4);
+        System.out.println(num&pow1);
+        System.out.println(num&pow2);
+        System.out.println(num&pow3);
+        System.out.println(num&pow4);
+
+        /**
+         * 散列函数
+         */
+        System.out.println(hash("mark"));
+
+
+
     }
 
+    /**
+     * 散列函数
+     * @param key
+     * @return
+     */
+    static int hash(Object key) {
+        int h = key.hashCode();
+        return (h ^ (h >>> 16)) & (16 -1); //capicity表示散列表的大小
+    }
     /**
      * ——————————————————————————————————————————————————————————————————————————————————————
      * =================================== 排 序 算 法 =======================================
@@ -373,5 +417,39 @@ public class ArithmeticTest {
         }
     }
 
+
+
+
+    /**
+     * ——————————————————————————————————————————————————————————————————————————————————————
+     * =================================== 二 叉 树 算 法 =================================
+     * ——————————————————————————————————————————————————————————————————————————————————————
+     */
+    public static class TreeNode {
+        int val;
+        TreeNode left;
+        TreeNode right;
+        TreeNode(int x) { val = x; }
+    }
+    public static class Solution {
+        /**
+         * 判断是否为二叉搜索树
+         * @param root
+         * @return
+         */
+        public boolean isValidBST(TreeNode root) {
+            if (root == null || (root.left == null && root.right == null)) return true;
+            return isValid(root,null,null);
+        }
+
+        public boolean isValid(TreeNode root, Integer min,Integer max) {
+            if (root == null) return true;
+            if (min != null && root.val <= min) return false;
+            if (max != null && root.val >= max) return false;
+            System.out.println(String.format("root.val = %d,min = %d,max = %d",root.val,min,max));
+            return  isValid(root.left, min,root.val) &&
+                    isValid(root.right, root.val,max);
+        }
+    }
 
 }

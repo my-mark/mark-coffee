@@ -5,9 +5,9 @@
 spring:
   #================数据源相关配置=============================================================================================================================
   datasource:
-    url: ${ehr.jdbcurl}
-    username: ${ehr.username}
-    password: ${ehr.password}
+    url: jdbc:mysql://81.68.229.180:3306/mark_stories?serverTimezone=Asia/Shanghai&Unicode=true&characterEncoding=UTF-8
+    username: root
+    password: mark320123456
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.jdbc.Driver
     #==============连接池设置=================================================================================================================================

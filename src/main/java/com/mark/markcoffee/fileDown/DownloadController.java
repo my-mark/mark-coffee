@@ -14,18 +14,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.nio.channels.FileChannel;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @RestController
 @RequestMapping(value = "download")
 public class DownloadController {
 
     private Logger logger = LoggerFactory.getLogger(DownloadController.class);
+
+    @Autowired
+    private RestTemplate restTemplate;
 
 //    @Autowired
 //    private RedisUtil redisUtil;
@@ -127,6 +142,70 @@ public class DownloadController {
         }*/
     }
 
+
+    /**
+     * 多线程下载大文件
+     */
+    @RequestMapping(value = "downLoadBigFile",method = RequestMethod.GET)
+    public void downLoadBigFile() throws IOException {
+        multiThreadDownload("https://dldir1.qq.com/qqtv/TencentVideo11.17.7063.0.exe","D://tempFile/",10);
+    }
+
+
+
+    public void multiThreadDownload(String fileUrl,String filePath,int threadNum) throws IOException {
+        System.out.println("开始下载文件。。。");
+        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+
+        long startTime = System.currentTimeMillis();
+
+        //通过Http协议的Head方法获取到文件的总大小
+        HttpHeaders httpHeads = new HttpHeaders();
+        HttpEntity<String> requestEntity = new HttpEntity<>(null, httpHeads);
+        ResponseEntity<String> entity = restTemplate.exchange(fileUrl, HttpMethod.HEAD, requestEntity, String.class);
+
+        long contentLength = entity.getHeaders().getContentLength();
+        //均分文件的大小
+        long step = contentLength / threadNum;
+
+        List<CompletableFuture<Object>> futures = new ArrayList<>();
+        for (int index = 0; index < threadNum; index++) {
+            //计算出每个线程的下载开始位置和结束位置
+            long start = step * index;
+            long end = index == threadNum - 1 ? 0 : (step * (index + 1) - 1);
+            FileResponseExtractor extractor = new FileResponseExtractor(filePath + ".download." + index);
+
+            CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> {
+                RequestCallback callback = request -> {
+                    //设置HTTP请求头Range信息，开始下载到临时文件
+                    request.getHeaders().add(HttpHeaders.RANGE, "bytes=" + start + "-" + end);
+                };
+                return restTemplate.execute(fileUrl, HttpMethod.GET, callback, extractor);
+            }, executorService);
+            futures.add(future);
+        }
+        
+        //创建最终文件
+        FileChannel outChannel = new FileOutputStream(new File(filePath)).getChannel();
+
+        futures.forEach(future -> {
+            try {
+                File tmpFile = (File) future.get();
+                FileChannel tmpIn = new FileInputStream(tmpFile).getChannel();
+                //合并每个临时文件
+                outChannel.transferFrom(tmpIn, outChannel.size(), tmpIn.size());
+                tmpIn.close();
+                //合并完成后删除临时文件
+                tmpFile.delete();
+            } catch (InterruptedException | ExecutionException | IOException e) {
+                e.printStackTrace();
+            }
+        });
+        outChannel.close();
+        executorService.shutdown();
+
+        System.out.println("下载文件完成，总共耗时: " + (System.currentTimeMillis() - startTime) / 1000 + "s");
+    }
 
 
 

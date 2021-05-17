@@ -3,8 +3,6 @@ server:
   tomcat:
     basedir: /data/app/upload
 spring:
-  zipkin:
-    base-url: ${zipkin.url}
   profiles:
     active: db,redis
 #请求处理的超时时间
@@ -43,5 +41,5 @@ pagehelper:
   reasonable: true
   supportMethodsArguments: true
   params: count=countSql
-stash.url: ${logstash.server}
-stash.level: ${logstash.level}
+#stash.url: ${logstash.server}
+#stash.level: ${logstash.level}
